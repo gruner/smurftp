@@ -5,17 +5,32 @@ require 'rubygems'
 require 'rio'
 
 class Smurftp
-  attr_accessor :last_upload, :find_directories
   
   def initialize(config_file)
     @config = config_file
     self.exception_list = []
     self.find_directories = ['.']
+    self.last_upload = nil
     this.run
   end
   
+  
   def run
     self.last_upload = Time.now
+  end
+  
+  
+  def refresh
+    
+  end
+  
+  
+  def parse_input
+  end
+  
+  
+  def method_name
+    
   end
   
   ##

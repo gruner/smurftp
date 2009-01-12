@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+
+require File.dirname(__FILE__) + '/../lib/smurftp'
+
+command = ARGV[0]
+directory = ARGV[1]
+
+if !command || !directory
+  puts "Usage: #{$0} <build|setup|preview> <directory>"
+  exit
+end
+
+configuration = Smurftp::Configuration.new
+
+config_file = "#{directory}/smurftp_config.yaml"
+
+if File.exists?(config_file)
+  config = File.read(config_file)
+  eval(config)
+end
+
+smurftp = Smurftp::Base.new(directory, configuration)
+smurftp.run(command)
