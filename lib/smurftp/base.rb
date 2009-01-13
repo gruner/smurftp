@@ -3,61 +3,27 @@ module Smurftp
   
     def initialize(base_dir, config_file)
       @base_dir = base_dir
-      @config_file = config_file
-      @configuration = Configuration.new
+      @configuration = Configuration.new(config_file)
       @file_queue = {}
       @last_upload = nil
-      @templates_dir = File.dirname(__FILE__) + '/templates'
     end
 
     
     def run()
-      read_configuration_file
-      validate_configuration
       set_base_dir
       refresh_file_queue(find_files)
-      get_user_input
-    end
-    
-    
-    def read_configuration_file
-      YAML::load_file(@config_file).each do |name, value|
-        if name == 'exclusions'
-          value.each do |exclude|
-            #TODO find a way to convert strings regexps in yaml to real regex objects
-            @configuration['exclusions'] << exclude
-          end
-        else
-          @configuration[name] = value
-        end
-      end
+      shell = Smurftp::Shell.new
+      shell.run()
     end
     
     
     def set_base_dir
       unless @base_dir
-        @base_dir = @configuration['document_root']
+        @base_dir = @configuration[:document_root]
       end
     end
 
-    
-    def validate_configuration
-      @configuration.required.each do |setting|
-        unless @configuration[setting]
-          raise StandardError, "Error: \"#{setting}\" is missing from configuration file."
-        end
-      end
-    end
-    
-    
-    def generate_config(dir)
-      copy_file("#{@templates_dir}/smurftp_config.yaml", "#{dir}/smurftp_config.yaml")
-      puts "No configuration file found. Creating new file."
-      puts "New configuration file created in #{dir}."
-      puts "Enter server and login info in this file and restart smurftp."
-    end
-    
-    
+
     def refresh_file_queue(files)      
       if @last_upload
         puts 'Files changed since last upload:'
@@ -77,29 +43,6 @@ module Smurftp
         end
       end
       puts '===================='
-    end
-
-
-    # A all
-    # L, ls, r refresh list
-    # 1 any number or range uploads those files
-    # ^1 ommits that file
-    # 1,2,4-7,^5 or !5
-    # More, list more files
-    # E, q quit
-
-    def get_user_input
-      puts 'Enter files for upload:'
-      command = gets.downcase
-      case command
-        when /^(a|all)/: upload_all
-        when /^(e|exit|q|quit)/: quit
-        when /^(m|more)/: list_more_files
-        when /^\d+(\.+|-)\d+/: parse_command_as_range(command)
-        when /^\d+/: parse_command_as_single(command)
-        when /^\d+,/: parse_command_as_list(command)
-        else 
-      end
     end
 
 
@@ -133,8 +76,8 @@ module Smurftp
 
       return result
     end
-    
-    
+
+
     def upload_all
       
     end
@@ -147,17 +90,10 @@ module Smurftp
       ftp.close
       @last_upload = Time.now
     end
-    
-    
+
+
     def copy_file(from, to)
       FileUtils.cp(from, to)
-    end
-    
-    def quit
-      puts 'Peace Out, Dawg!'
-      messages = [
-        'Hasta La Vista, Baby!',
-        'Peace Out, Dawg!']
     end
 
   end

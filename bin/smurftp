@@ -16,7 +16,7 @@ if File.directory?(input)
   directory = input
   config_file = "#{input}/smurftp_config.yaml"
   unless File.file?(config_file)
-    Smrftp::Base.generate_config(directory)
+    Smrftp::Configuration.generate_config_file(directory)
   end
 elsif File.file?(input)
   config_file = input
