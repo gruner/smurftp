@@ -1,37 +1,48 @@
-require 'readline'
-
 # Smurftp::Shell is used to create an interactive shell. It is invoked by the smurftp binary.
 module Smurftp
   class Shell
     
-    def initialize
+    def initialize(base_dir, config_file)
       Readline.basic_word_break_characters = ""
       Readline.completion_append_character = nil
+      @configuration = Smurftp::Configuration.new(config_file)
+      @base_dir = base_dir != '' ? base_dir : @configuration[:document_root]
+      @file_queue = {}
+      @last_upload = nil
     end
 
 
-    # A all
-    # L, ls, r refresh list
-    # 1 any number or range uploads those files
     # ^1 ommits that file
     # 1,2,4-7,^5 or !5
-    # More, list more files
 
     # Run a single command.
     def execute(cmd)
       case cmd.downcase
-      when /^(a|all)/: upload_all_queued_files
+        when /^(a|all)/: upload(parse_file_list(cmd, 'all'))
+        when /^\d+(\.+|-)\d+/: upload(parse_file_list(cmd, 'range'))
+        when /^\d+/: upload(parse_file_list(cmd, 'single'))
+        when /^\d+,/: upload(parse_file_list(cmd, 'list'))
         when /^(m|more)/: list_more_queued_files
-        when /^\d+(\.+|-)\d+/: parse_command_as_range(cmd)
-        when /^\d+/: parse_command_as_single(cmd)
-        when /^\d+,/: parse_command_as_list(cmd)
-        else 
+        when /^(r|refresh|l|ls|list)/: refresh_file_queue
+        else
       end
+    end
+    
+    
+    def parse_file_list(cmd, type)
+      files = case type
+        when 'single': 
+        when 'range': 
+        when 'list':
+        when 'all': 
+      end
+      return files
     end
 
 
     # Run the interactive shell using readline.
     def run
+      refresh_file_queue(find_files)
       loop do
         cmd = Readline.readline('smurftp> ')
         finish if cmd.nil? or cmd =~ /^(e|exit|q|quit)/
@@ -40,6 +51,13 @@ module Smurftp
         execute(cmd)
       end
     end
+    
+    
+    def list_more_queued_files
+      
+    end
+
+
 
 
     # Close the shell and exit the program with a cheesy message.
@@ -49,49 +67,75 @@ module Smurftp
         'Hasta La Vista, Baby!',
         'Peace Out, Dawg!'
       ]
-      random_msg = messages
+      random_msg = messages[rand(mesages.count+1)]
       puts random_msg
       exit
     end
 
 
-    # Nice printing of different return types, particularly Rush::SearchResults.
-    def print_result(res)
-      return if self.suppress_output
-      if res.kind_of? String
-        puts res
-      elsif res.kind_of? Rush::SearchResults
-        widest = res.entries.map { |k| k.full_path.length }.max
-        res.entries_with_lines.each do |entry, lines|
-          print entry.full_path
-          print ' ' * (widest - entry.full_path.length + 2)
-          print "=> "
-          print res.colorize(lines.first.strip.head(30))
-          print "..." if lines.first.strip.length > 30
-          if lines.size > 1
-            print " (plus #{lines.size - 1} more matches)"
-          end
-          print "\n"
-        end
-        puts "#{res.entries.size} matching files with #{res.lines.size} matching lines"
-      elsif res.respond_to? :each
-        counts = {}
-        res.each do |item|
-          puts item
-          counts[item.class] ||= 0
-          counts[item.class] += 1
-        end
-        if counts == {}
-          puts "=> (empty set)"
-        else
-          count_s = counts.map do |klass, count|
-            "#{count} x #{klass}"
-          end.join(', ')
-          puts "=> #{count_s}"
-        end
+    def refresh_file_queue(files)      
+      if @last_upload
+        puts 'Files changed since last upload:'
       else
-        puts "=> #{res.inspect}"
+        puts 'Recently modified files:'
       end
+      
+      file_count = 1
+      files.each do |f|
+        unless file_count > @queue_limit
+          puts "[#{file_count}] #{f}"
+          file_count += 1
+        else
+          remaining_files = files.length - file_count
+          puts "(plus #{remaining_files} more)"
+          break
+        end
+      end
+      puts '===================='
     end
 
+
+    ##
+    # Find the files to process, ignoring temporary files, source
+    # configuration management files, etc., and return a Hash mapping
+    # filename to modification time.
+  
+    def find_files(last_upload)
+      result = {}
+  
+      order = []
+      Find.find(@base_dir) do |f|
+        Find.prune if f =~ @congiguration['exclusions']
+
+        next if f =~ /(swp|~|rej|orig|bak)$/ # temporary/patch files
+        next if f =~ /\/\.?#/            # Emacs autosave/cvs merge files
+        
+        #TODO loop through exclusions that are regex objects
+
+        filename = f.sub(/^\.\//, '')
+        
+        if last_upload
+          
+        end
+        
+        if File.stat(filename).mtime > last_upload
+          result[filename] = File.stat(filename).mtime rescue next
+        end
+      end
+
+      return result
+    end
+
+
+    def upload(files)
+      ftp = Net::FTP.new(@configuration['server'])
+      ftp.login(@configuration[:user], @configuration['password'])
+      files.each do |f|
+        ftp.put("#{@configuration['document_root']}/#{f}", "#{@configuration['server_root']}/#{f}")
+      end
+      ftp.close
+      @last_upload = Time.now
+    end
+
+  end
 end
