@@ -1,6 +1,10 @@
-server:
-server_root:
-document_root:
-login:
-pass:
+# smurftp configuration
+server: 'ftp.yourserver.com'
+server_root: 'web/'
+document_root: '.'
+login: 'login'
+password: ''
 exclusions:
+  - '_notes'
+  - 'resources'
+  - '/regex/'

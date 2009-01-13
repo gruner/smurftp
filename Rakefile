@@ -13,7 +13,7 @@ spec = Gem::Specification.new do |s|
   s.author = "Andrew Gruner"
   s.email = "andrew@divineflame.com"
   s.homepage = "http//github.com/divineflame/smurftp"
-  s.summary = "Creates a que of recently modified files for uploading to a server"
+  s.summary = "Creates a queue of recently modified files for quickly uploading to a server"
   files = FileList["**/**/**"]
   files.exclude 'pkg'
   files.exclude 'contrib'
