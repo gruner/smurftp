@@ -25,5 +25,5 @@ else
   exit
 end
 
-smurftp = Smurftp::Base.new(directory, config_file)
+smurftp = Smurftp::Shell.new(directory, config_file)
 smurftp.run()
