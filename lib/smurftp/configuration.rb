@@ -2,6 +2,7 @@ module Smurftp
   class Configuration
 
     def self.generate_config_file(dir)
+      # TODO ask befor creating new file
       templates_dir = File.dirname(__FILE__) + '/templates'
       FileUtils.cp("#{templates_dir}/smurftp_config.yaml", "#{dir}/smurftp_config.yaml")
       puts "No configuration file found. Creating new file."
@@ -12,7 +13,6 @@ module Smurftp
 
     def initialize(file)
       self[:exclusions] = []
-      self[:required] = %w[server server_root document_root login password]
       self[:queue_limit] = 15
       load_config_file(file)
       validate
@@ -34,7 +34,7 @@ module Smurftp
 
 
     def validate
-      self[:required].each do |setting|
+      %w[server server_root document_root login password].each do |setting|
         unless self[setting.to_sym]
           raise StandardError, "Error: \"#{setting}\" is missing from configuration file."
         end
