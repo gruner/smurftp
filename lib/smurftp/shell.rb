@@ -22,13 +22,13 @@ module Smurftp
         when /^(a|all)/
           upload_all
         when /^\d+(\.+|-)\d+/
-          parse_file_range(cmd)
+          add_range_to_queue(cmd)
           upload
         when /^\d+/
-          parse_file_id(cmd)
+          add_file_to_queue(cmd)
           upload
         when /^\d+,/
-          parse_file_list(cmd)
+          add_list_to_queue(cmd)
           upload
         # when /^(m|more)/: list_more_queued_files
         when /^(r|refresh|l|ls|list)/: refresh_file_queue(find_files)
@@ -37,25 +37,6 @@ module Smurftp
     end
     
     
-    def parse_file_list(cmd, type)
-      files = case type
-        when 'single': 
-        when 'range': 
-        when 'list'
-          cmd.split(',').each do |f|
-            f.strip!
-            if f =~ /-/
-              f = parse_file_list(f, 'range')
-            else
-              f = f.to_i
-            end
-          end
-        when 'all': @file_queue
-      end
-      return files
-    end
-
-
     # Run the interactive shell using readline.
     def run
       refresh_file_queue(find_files)
@@ -69,29 +50,32 @@ module Smurftp
     end
     
     
-    def parse_file_id(str)
+    def add_file_to_queue(str)
       str.gsub!(/[^\d]/, '') #strip non-digit characters
       @upload_queue << str.to_i
     end
     
     
-    def parse_file_list(str)
-      str.split(',').each do |f|
-        f.strip!
-        if f =~ /-/
-          parse_file_range(f)
-        elsif f =~ /(\^|!)\d/
-          f.gsub!(/[^\d]/, '') #strip non-digit characters
-          @upload_queue.delete(f.to_i)
+    def add_list_to_queue(str)
+      str.split(',').each do |s|
+        if s =~ /-/
+          parse_file_range(s)
+        elsif s =~ /(\^|!)\d/
+          s.gsub!(/[^\d]/, '') #strip non-digit characters
+          @upload_queue.delete(s.to_i)
         else
-          parse_file_id f
+          add_to_queue(s)
         end
       end
     end
     
     
-    def parse_file_range(str)
-      
+    def add_range_to_queue(str)
+      str.split(/\.+|-+/).each do |r_start, r_end|
+        # TODO assumes even number pairs for creating a range
+        range = r_start.to_i..r_end.to_i
+        range.each {|n| @upload_que << n}
+      end
     end
     
     
@@ -177,7 +161,8 @@ module Smurftp
     # Close the shell and exit the program with a cheesy message.
     def finish
       puts 'Peace Out, Dawg!'
-      messages = [
+      messages = 
+      [
         'Hasta La Vista, Baby!',
         'Peace Out, Dawg!'
       ]
