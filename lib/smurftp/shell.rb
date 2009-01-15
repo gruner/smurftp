@@ -96,11 +96,12 @@ module Smurftp
       
       file_count = 1
       @file_list.each do |f|
+        file_name = f[0].gsub("#{@base_dir}/", '')
         unless file_count > @configuration[:queue_limit]
-          puts "[#{file_count}] #{f[0]}"
+          puts "[#{file_count}] #{file_name}"
           file_count += 1
         else
-          remaining_files = files.length - file_count
+          remaining_files = @file_list.length - file_count
           puts "(plus #{remaining_files} more)"
           break
         end
@@ -121,7 +122,7 @@ module Smurftp
         # this line not working
         #Find.prune if f =~ @congiguration[:exclusions]
 
-        next if f =~ /(swp|~|rej|orig|bak)$/ # temporary/patch files
+        next if f =~ /(swp|~|rej|orig|bak|.git)$/ # temporary/patch files
         next if f =~ /\/\.?#/            # Emacs autosave/cvs merge files
         next if File.directory?(f) #skip directories
         
@@ -139,7 +140,7 @@ module Smurftp
         end
       end
       # sort list by mtime
-      @file_list.sort! { |x,y| x[1] <=> y[1] }
+      @file_list.sort! { |x,y| y[1] <=> x[1] }
     end
 
 
@@ -167,13 +168,15 @@ module Smurftp
 
     # Close the shell and exit the program with a cheesy message.
     def finish
-      puts 'Peace Out, Dawg!'
       messages = 
       [
         'Hasta La Vista, Baby!',
-        'Peace Out, Dawg!'
+        'Peace Out, Dawg!',
+        'Diggidy!',
+        'Up up and away!',
+        'Sally Forth Good Sir!'
       ]
-      random_msg = messages[rand(messages.length+1)]
+      random_msg = messages[rand(messages.length)-1]
       puts random_msg
       exit
     end

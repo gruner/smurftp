@@ -14,7 +14,7 @@ module Smurftp
 
     def initialize(file)
       self[:exclusions] = []
-      self[:queue_limit] = 15
+      self[:queue_limit] = 20
       load_config_file(file)
       validate
     end
