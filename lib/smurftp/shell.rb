@@ -3,10 +3,12 @@ module Smurftp
   class Shell
 
     def initialize(base_dir, config_file)
+      # TODO figure out if base_dir is relevant or if it's always going to be read from config
       #Readline.basic_word_break_characters = ""
       #Readline.completion_append_character = nil
       @configuration = Smurftp::Configuration.new(config_file)
-      @base_dir = base_dir != '' ? base_dir : @configuration[:document_root]
+      #@base_dir = base_dir != nil ? base_dir : @configuration[:document_root]
+      @base_dir = @configuration[:document_root]
       @file_list = []
       @upload_queue = []
       @last_upload = nil
@@ -112,13 +114,16 @@ module Smurftp
     # configuration management files, etc., and return a Hash mapping
     # filename to modification time.
 
-    def find_files()
+    def find_files
       @file_list.clear
       Find.find(@base_dir) do |f|
-        Find.prune if f =~ @congiguration['exclusions']
+        
+        # this line not working
+        #Find.prune if f =~ @congiguration[:exclusions]
 
         next if f =~ /(swp|~|rej|orig|bak)$/ # temporary/patch files
         next if f =~ /\/\.?#/            # Emacs autosave/cvs merge files
+        next if File.directory?(f) #skip directories
         
         #TODO loop through exclusions that are regex objects
 
@@ -130,15 +135,16 @@ module Smurftp
             @file_list << [filename, mtime] rescue next
           end
         else #get all files, because we haven't uploaded yet
-          result[filename] = mtime rescue next
+          @file_list << [filename, mtime] rescue next
         end
       end
       # sort list by mtime
-      @file_list.sort! { |x,y| x[1]<=>y[1] }
+      @file_list.sort! { |x,y| x[1] <=> y[1] }
     end
 
 
     def upload
+      return
       @upload_queue.unique!
       ftp = Net::FTP.new(@configuration[:server])
       ftp.login(@configuration[:user], @configuration[:password])

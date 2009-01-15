@@ -1,5 +1,5 @@
 module Smurftp
-  class Configuration
+  class Configuration < Hash
 
     def self.generate_config_file(dir)
       # TODO ask before creating new file
@@ -20,7 +20,7 @@ module Smurftp
     end
 
 
-    def load_congig_file(file)
+    def load_config_file(file)
       YAML::load_file(file).each do |name, value|
         if name == 'exclusions'
           value.each do |exclude|
@@ -39,6 +39,9 @@ module Smurftp
         unless self[setting.to_sym]
           raise StandardError, "Error: \"#{setting}\" is missing from configuration file."
         end
+      end
+      unless File.directory?(self[:document_root])
+        raise StandardError, "Error: \"#{self[:document_root]}\" specified in configuration file is not a valid directory."
       end
     end
 
