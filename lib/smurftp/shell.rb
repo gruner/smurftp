@@ -1,7 +1,7 @@
 # Smurftp::Shell is used to create an interactive shell. It is invoked by the smurftp binary.
 module Smurftp
   class Shell
-    
+
     def initialize(base_dir, config_file)
       #Readline.basic_word_break_characters = ""
       #Readline.completion_append_character = nil
@@ -13,9 +13,6 @@ module Smurftp
     end
 
 
-    # ^1 ommits that file
-    # 1,2,4-7,^5 or !5
-
     # Run a single command.
     def execute(cmd)
       case cmd.downcase
@@ -24,14 +21,16 @@ module Smurftp
         when /^\d+(\.+|-)\d+/
           add_range_to_queue(cmd)
           upload
-        when /^\d+/
-          add_file_to_queue(cmd)
-          upload
         when /^\d+,/
           add_list_to_queue(cmd)
           upload
+        when /^\d+/
+          add_file_to_queue(cmd)
+          upload
         # when /^(m|more)/: list_more_queued_files
-        when /^(r|refresh|l|ls|list)/: refresh_file_queue(find_files)
+        when /^(r|refresh|l|ls|list)/
+          find_files
+          refresh_file_display
         else
       end
     end
@@ -39,7 +38,8 @@ module Smurftp
     
     # Run the interactive shell using readline.
     def run
-      refresh_file_queue(find_files)
+      find_files
+      refresh_file_display
       loop do
         cmd = Readline.readline('smurftp> ')
         finish if cmd.nil? or cmd =~ /^(e|exit|q|quit)/
@@ -85,7 +85,7 @@ module Smurftp
     end
 
 
-    def refresh_file_queue(files)
+    def refresh_file_display
       if @last_upload
         puts 'Files changed since last upload:'
       else
@@ -93,9 +93,9 @@ module Smurftp
       end
       
       file_count = 1
-      files.each do |f|
+      @file_list.each do |f|
         unless file_count > @configuration[:queue_limit]
-          puts "[#{file_count}] #{f}"
+          puts "[#{file_count}] #{f[0]}"
           file_count += 1
         else
           remaining_files = files.length - file_count
@@ -113,8 +113,7 @@ module Smurftp
     # filename to modification time.
 
     def find_files()
-      result = {}
-
+      @file_list.clear
       Find.find(@base_dir) do |f|
         Find.prune if f =~ @congiguration['exclusions']
 
@@ -128,32 +127,34 @@ module Smurftp
         
         if @last_upload
           if mtime > @last_upload
-            result[filename] = mtime rescue next
+            @file_list << [filename, mtime] rescue next
           end
         else #get all files, because we haven't uploaded yet
           result[filename] = mtime rescue next
         end
       end
-
-      return result
+      # sort list by mtime
+      @file_list.sort! { |x,y| x[1]<=>y[1] }
     end
 
 
     def upload
       @upload_queue.unique!
-      ftp = Net::FTP.new(@configuration['server'])
-      ftp.login(@configuration[:user], @configuration['password'])
-      @upload_queue.each do |f|
-        ftp.put("#{@configuration['document_root']}/#{f}", "#{@configuration['server_root']}/#{f}")
-        @upload_que.delete f
+      ftp = Net::FTP.new(@configuration[:server])
+      ftp.login(@configuration[:user], @configuration[:password])
+      @upload_queue.each do |file_id|
+        file = @file_list[file_id][0]
+        ftp.put("#{@configuration[:document_root]}/#{file}", "#{@configuration[:server_root]}/#{file}")
+        @file_list.delete_at file_id
+        @upload_que.delete file_id
       end
       ftp.close
       @last_upload = Time.now
     end
-    
-    
+
+
     def upload_all
-      @upload_queue = @file_list
+      @file_list.length.times { |f| @upload_queue << f+1 }
       upload
     end
 
