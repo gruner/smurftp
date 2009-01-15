@@ -43,6 +43,9 @@ module Smurftp
       unless File.directory?(self[:document_root])
         raise StandardError, "Error: \"#{self[:document_root]}\" specified in configuration file is not a valid directory."
       end
+      puts self[:server]
+      puts self[:login]
+      puts self[:password]
     end
 
   end

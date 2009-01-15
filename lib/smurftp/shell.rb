@@ -54,7 +54,8 @@ module Smurftp
     
     def add_file_to_queue(str)
       str.gsub!(/[^\d]/, '') #strip non-digit characters
-      @upload_queue << str.to_i
+      @upload_queue << str.to_i-1
+      puts "file #{str} added to queue."
     end
     
     
@@ -64,9 +65,9 @@ module Smurftp
           parse_file_range(s)
         elsif s =~ /(\^|!)\d/
           s.gsub!(/[^\d]/, '') #strip non-digit characters
-          @upload_queue.delete(s.to_i)
+          @upload_queue.delete(s.to_i-1)
         else
-          add_to_queue(s)
+          add_file_to_queue(s)
         end
       end
     end
@@ -76,7 +77,7 @@ module Smurftp
       str.split(/\.+|-+/).each do |r_start, r_end|
         # TODO assumes even number pairs for creating a range
         range = r_start.to_i..r_end.to_i
-        range.each {|n| @upload_que << n}
+        range.each {|n| @upload_que << n-1}
       end
     end
     
@@ -96,9 +97,8 @@ module Smurftp
       
       file_count = 1
       @file_list.each do |f|
-        file_name = f[0].gsub("#{@base_dir}/", '')
         unless file_count > @configuration[:queue_limit]
-          puts "[#{file_count}] #{file_name}"
+          puts "[#{file_count}] #{f[:base_name]}"
           file_count += 1
         else
           remaining_files = @file_list.length - file_count
@@ -128,34 +128,39 @@ module Smurftp
         
         #TODO loop through exclusions that are regex objects
 
-        filename = f.sub(/^\.\//, '')
-        mtime = File.stat(filename).mtime
+        file_name = f.sub(/^\.\//, '')
+        mtime = File.stat(file_name).mtime
+        base_name = file_name.sub("#{@base_dir}/", '')
         
         if @last_upload
           if mtime > @last_upload
-            @file_list << [filename, mtime] rescue next
+            #@file_list << [file_name, mtime] rescue next
+            @file_list << {:name => file_name,
+                           :base_name => base_name,
+                           :mtime => mtime} rescue next
           end
         else #get all files, because we haven't uploaded yet
-          @file_list << [filename, mtime] rescue next
+          @file_list << {:name => file_name,
+                           :base_name => base_name,
+                           :mtime => mtime} rescue next
         end
       end
       # sort list by mtime
-      @file_list.sort! { |x,y| y[1] <=> x[1] }
+      @file_list.sort! { |x,y| y[:mtime] <=> x[:mtime] }
     end
 
 
     def upload
-      return
-      @upload_queue.unique!
-      ftp = Net::FTP.new(@configuration[:server])
-      ftp.login(@configuration[:user], @configuration[:password])
-      @upload_queue.each do |file_id|
-        file = @file_list[file_id][0]
-        ftp.put("#{@configuration[:document_root]}/#{file}", "#{@configuration[:server_root]}/#{file}")
-        @file_list.delete_at file_id
-        @upload_que.delete file_id
+      Net::FTP.open(@configuration[:server]) do |ftp|
+        ftp.login(@configuration[:login], @configuration[:password])
+        @upload_queue.uniq!
+        @upload_queue.each do |file_id|
+          file = @file_list[file_id]
+          ftp.put("#{file[:name]}", "#{@configuration[:server_root]}/#{file[:base_name]}")
+          @file_list.delete_at file_id
+          @upload_queue.delete file_id
+        end
       end
-      ftp.close
       @last_upload = Time.now
     end
 
@@ -176,7 +181,7 @@ module Smurftp
         'Up up and away!',
         'Sally Forth Good Sir!'
       ]
-      random_msg = messages[rand(messages.length)-1]
+      random_msg = messages[rand(messages.length)]
       puts random_msg
       exit
     end
