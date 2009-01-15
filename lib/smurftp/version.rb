@@ -1,4 +1,4 @@
--module Smurftp #:nodoc:
+module Smurftp #:nodoc:
   module VERSION #:nodoc:
     MAJOR = 0
     MINOR = 9

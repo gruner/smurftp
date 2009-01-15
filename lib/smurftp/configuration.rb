@@ -2,7 +2,8 @@ module Smurftp
   class Configuration
 
     def self.generate_config_file(dir)
-      # TODO ask befor creating new file
+      # TODO ask before creating new file
+      # TODO fill out the config file by promption user for the info
       templates_dir = File.dirname(__FILE__) + '/templates'
       FileUtils.cp("#{templates_dir}/smurftp_config.yaml", "#{dir}/smurftp_config.yaml")
       puts "No configuration file found. Creating new file."
