@@ -55,7 +55,6 @@ module Smurftp
     def add_file_to_queue(str)
       str.gsub!(/[^\d]/, '') #strip non-digit characters
       @upload_queue << str.to_i-1
-      puts "file #{str} added to queue."
     end
     
     
@@ -134,7 +133,6 @@ module Smurftp
         
         if @last_upload
           if mtime > @last_upload
-            #@file_list << [file_name, mtime] rescue next
             @file_list << {:name => file_name,
                            :base_name => base_name,
                            :mtime => mtime} rescue next
@@ -155,12 +153,15 @@ module Smurftp
         ftp.login(@configuration[:login], @configuration[:password])
         @upload_queue.uniq!
         @upload_queue.each do |file_id|
+          # TODO create remote folder if it doesn't exist
           file = @file_list[file_id]
+          puts "uploading #{file[:base_name]}..."
           ftp.put("#{file[:name]}", "#{@configuration[:server_root]}/#{file[:base_name]}")
           @file_list.delete_at file_id
           @upload_queue.delete file_id
         end
       end
+      puts "done"
       @last_upload = Time.now
     end
 
@@ -178,7 +179,7 @@ module Smurftp
         'Hasta La Vista, Baby!',
         'Peace Out, Dawg!',
         'Diggidy!',
-        'Up up and away!',
+        'Up, up, and away!',
         'Sally Forth Good Sir!'
       ]
       random_msg = messages[rand(messages.length)]
