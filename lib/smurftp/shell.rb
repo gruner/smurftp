@@ -149,16 +149,20 @@ module Smurftp
 
 
     def upload
+      created_dirs = []
       Net::FTP.open(@configuration[:server]) do |ftp|
         ftp.login(@configuration[:login], @configuration[:password])
         @upload_queue.uniq!
         @upload_queue.each do |file_id|
-          # TODO create remote folder if it doesn't exist
           file = @file_list[file_id]
           puts "uploading #{file[:base_name]}..."
           
-          dirs = parse_file_for_sub_dirs(file[:base_name])
-          
+          parse_file_for_sub_dirs(file[:base_name]).each do |dir|
+            unless created_dirs.contains? dir
+              ftp.mkdir dir
+              created_dirs << dir
+            end
+          end
           
           ftp.put("#{file[:name]}", "#{@configuration[:server_root]}/#{file[:base_name]}")
           @file_list.delete_at file_id
@@ -178,13 +182,20 @@ module Smurftp
     
     def parse_file_for_sub_dirs(file)
       dirs = file.split(/\//)
-      dirs.pop #keep only the directories
-      return dirs
+      dirs_expanded = []
+      
+      while dirs.length >= 1
+        dirs.pop
+        dirs_expanded << dirs.join('/')
+      end
+      
+      return dirs_expanded.reverse
+      
     end
     
     
     def create_remote_sub_dir(ftp, dir)
-      
+      ftp.mkdir dir
     end
 
 
