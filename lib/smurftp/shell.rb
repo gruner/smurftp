@@ -156,6 +156,10 @@ module Smurftp
           # TODO create remote folder if it doesn't exist
           file = @file_list[file_id]
           puts "uploading #{file[:base_name]}..."
+          
+          dirs = parse_file_for_sub_dirs(file[:base_name])
+          
+          
           ftp.put("#{file[:name]}", "#{@configuration[:server_root]}/#{file[:base_name]}")
           @file_list.delete_at file_id
           @upload_queue.delete file_id
@@ -169,6 +173,18 @@ module Smurftp
     def upload_all
       @file_list.length.times { |f| @upload_queue << f+1 }
       upload
+    end
+    
+    
+    def parse_file_for_sub_dirs(file)
+      dirs = file.split(/\//)
+      dirs.pop #keep only the directories
+      return dirs
+    end
+    
+    
+    def create_remote_sub_dir(ftp, dir)
+      
     end
 
 
