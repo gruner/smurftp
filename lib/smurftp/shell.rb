@@ -159,6 +159,7 @@ module Smurftp
           
           parse_file_for_sub_dirs(file[:base_name]).each do |dir|
             unless created_dirs.contains? dir
+              # TODO check for remote dir before creating it
               ftp.mkdir dir
               created_dirs << dir
             end
