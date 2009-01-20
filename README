@@ -2,24 +2,39 @@
  
 Smurftp creates a queue of recently modified files for quickly uploading to a remote server via FTP.
  
- ## Usage
+## Usage
 
 Start Smurftp with this command:
 
     smurftp <directory or configuration file>
 
-If the specified directory contains a 'smurftp_config.yaml' file, you're good to go. Otherwise you'll be given the option for this file to be generated for you.
+## Configuration
 
-Alternately, you can run Smurftp from a configuration file that points to a different local directory.
+Smurftp requires a configuration file in YAML format that defines your FTP server and login information, as well as a local directory ('document_root').
+
+When starting Smurftp, if you specify a directory, it looks for a 'smurftp_config.yaml' file in that directory. If the file is not found you'll be given the option for this file to be generated for you.
+
+Alternatively, if you specify an existing configuration file (it doesn't require the 'smurftp_config.yaml' name) Smurftp will start by loading this file. Because the local 'document_root' is defined in the configuration file, you can store the configuration file separately from your project files if you choose.
 
 ## File List
 
-Smurftp will search the specified directory and list all files in all sub directories, ordered by modification date, newest files first.
+Smurftp will search the defined 'document_root' directory and list all files in all sub directories, ordered by modification date, newest files first. It skips any files defined in the 'exclusions' list.
 
-Type the number of the files you want uploaded. You can also enter a list or range of files.
+    [1] foo.php
+    [2] images/bar.jpg
+    [3] includes/header.php
+    [4] images/logo.png
+    [5] yada.php
+    ====================
+    smurftp>
+
+At the `smurftp>` prompt enter the number identifier of the files you want uploaded. You can also enter a list or range of files.
 
     1 uploads file [1]
-    1-5 uploads files 1-5
-    1-5,^4 skips file 4 and files 1-3, and 5
-    1,2,4 uploads 1, 2, and 4
+    1-5 uploads files [1-5]
+    1,2,4 uploads [1], [2], and [4]
+    1-5,^4 uploads files [1-3], and [5], skiping file [4]
+    1-5,!4 same as above
     all uploads all listed files
+
+To quit type `quit` or `exit` at the prompt. `e` or `q` will also quit.

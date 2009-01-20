@@ -2,12 +2,10 @@
 module Smurftp
   class Shell
 
-    def initialize(base_dir, config_file)
-      # TODO figure out if base_dir is relevant or if it's always going to be read from config
+    def initialize(config_file)
       #Readline.basic_word_break_characters = ""
       #Readline.completion_append_character = nil
       @configuration = Smurftp::Configuration.new(config_file)
-      #@base_dir = base_dir != nil ? base_dir : @configuration[:document_root]
       @base_dir = @configuration[:document_root]
       @file_list = []
       @upload_queue = []
@@ -149,25 +147,29 @@ module Smurftp
 
 
     def upload
+      #TODO add timeout error handling
       created_dirs = []
       Net::FTP.open(@configuration[:server]) do |ftp|
         ftp.login(@configuration[:login], @configuration[:password])
         @upload_queue.uniq!
         @upload_queue.each do |file_id|
           file = @file_list[file_id]
-          puts "uploading #{file[:base_name]}..."
           
-          parse_file_for_sub_dirs(file[:base_name]).each do |dir|
-            unless created_dirs.contains? dir
-              # TODO check for remote dir before creating it
-              ftp.mkdir dir
+          dirs = parse_file_for_sub_dirs(file[:base_name])
+          dirs.each do |dir|
+            unless created_dirs.include? dir
+              begin
+                ftp.mkdir "#{@configuration[:server_root]}/#{dir}"
+                puts "created #{dir}..."
+              rescue Net::FTPPermError; end #ignore errors for existing dirs
               created_dirs << dir
             end
           end
           
+          puts "uploading #{file[:base_name]}..."
           ftp.put("#{file[:name]}", "#{@configuration[:server_root]}/#{file[:base_name]}")
-          @file_list.delete_at file_id
-          @upload_queue.delete file_id
+          # @file_list.delete_at file_id
+          # @upload_queue.delete file_id
         end
       end
       puts "done"
@@ -183,20 +185,15 @@ module Smurftp
     
     def parse_file_for_sub_dirs(file)
       dirs = file.split(/\//)
+      return [] if dirs.length <= 1
       dirs_expanded = []
       
-      while dirs.length >= 1
+      while dirs.length > 1
         dirs.pop
         dirs_expanded << dirs.join('/')
       end
-      
+
       return dirs_expanded.reverse
-      
-    end
-    
-    
-    def create_remote_sub_dir(ftp, dir)
-      ftp.mkdir dir
     end
 
 
