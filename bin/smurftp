@@ -9,7 +9,6 @@ if !input
   exit
 end
 
-directory = ''
 config_file = ''
 
 if File.directory?(input)
@@ -26,5 +25,5 @@ else
   exit
 end
 
-smurftp = Smurftp::Shell.new(directory, config_file)
+smurftp = Smurftp::Shell.new(config_file)
 smurftp.run()
