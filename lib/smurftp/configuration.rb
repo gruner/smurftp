@@ -13,7 +13,7 @@ module Smurftp
 
 
     def initialize(file)
-      self[:exclusions] = []
+      self[:exclusions] = [file] #exclude config file from upload if it's in the @base_dir
       self[:queue_limit] = 15
       load_config_file(file)
       validate
@@ -24,7 +24,10 @@ module Smurftp
       YAML::load_file(file).each do |name, value|
         if name == 'exclusions'
           value.each do |exclude|
-            #TODO find a way to convert strings regexps in yaml to real regex objects
+            # if exclude =~ /^\/.*\/$/
+            #   exclude.sub!(/^\/.*\/$/,$1)
+            #   exclude = exclude.to_regex
+            # end
             self[:exclusions] << exclude
           end
         else

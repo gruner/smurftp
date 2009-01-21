@@ -1,6 +1,8 @@
 # Smurftp::Shell is used to create an interactive shell. It is invoked by the smurftp binary.
 module Smurftp
   class Shell
+    
+    attr_reader :upload_queue, :file_list
 
     def initialize(config_file)
       #Readline.basic_word_break_characters = ""
@@ -42,7 +44,7 @@ module Smurftp
       refresh_file_display
       loop do
         cmd = Readline.readline('smurftp> ')
-        finish if cmd.nil? or cmd =~ /^(e|exit|q|quit)/
+        finish if cmd.nil? or cmd =~ /^(e|q)/
         next if cmd == ""
         Readline::HISTORY.push(cmd)
         execute(cmd)
@@ -71,10 +73,13 @@ module Smurftp
     
     
     def add_range_to_queue(str)
-      str.split(/\.+|-+/).each do |r_start, r_end|
-        # TODO assumes even number pairs for creating a range
-        range = r_start.to_i..r_end.to_i
-        range.each {|n| @upload_que << n-1}
+      delimiters = str.split(/\.+|-+/)
+      r_start, r_end = delimiters[0], delimiters[1]
+      # TODO assumes even number pairs for creating a range
+      range = r_start.to_i..r_end.to_i
+      puts range
+      range.each do |n|
+        @upload_queue << n-1
       end
     end
     
@@ -116,8 +121,12 @@ module Smurftp
       @file_list.clear
       Find.find(@base_dir) do |f|
         
-        # this line not working
-        #Find.prune if f =~ @congiguration[:exclusions]
+        @configuration[:exclusions].each do |e|
+          Find.prune if f =~ e.to_regex
+          # if e.class == Regexp
+          #   Find.prune if f =~ e.to_regex
+          # end
+        end
 
         next if f =~ /(swp|~|rej|orig|bak|.git)$/ # temporary/patch files
         next if f =~ /\/\.?#/            # Emacs autosave/cvs merge files
@@ -169,7 +178,7 @@ module Smurftp
           puts "uploading #{file[:base_name]}..."
           ftp.put("#{file[:name]}", "#{@configuration[:server_root]}/#{file[:base_name]}")
           # @file_list.delete_at file_id
-          # @upload_queue.delete file_id
+          @upload_queue.delete file_id
         end
       end
       puts "done"
