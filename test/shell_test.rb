@@ -3,32 +3,42 @@ require File.dirname(__FILE__) + '/../lib/smurftp'
 
 class SmurftpShellTest < Test::Unit::TestCase
   def setup
-    @config = File.dirname(__FILE__) + '/sandbox/test_config.yaml'
+    @config = File.dirname(__FILE__) + '/../lib/smurftp/templates/smurftp_config.yaml'
     @smurftp = Smurftp::Shell.new(@config)
   end
   
-  def test_should_parse_file_for_sub_dirs
-  end
   
-  def test_should_add_file_to_queue
+  def test_should_parse_list
+    lists = [
+      ['1,2,3',['1','2','3']],
+      ['1-4,^3',['1','2','4']],
+      ['1,2,3-6,^4',['1','2','3','5','6']],
+      ['1,2,3-6,!4',['1','2','3','5','6']],
+      ['^4,1-6',['1','2','3','5','6']]
+    ].each do |input, expected|
+      assert_equal expected, @smurftp.parse_list(input)
+    end
   end
 
-  def test_should_add_list_to_queue
-    @smurftp.add_list_to_queue('1,2,3')
-    assert_match [0,1,2], @smurftp.upload_queue
+
+  def test_should_parse_range
+    assert_equal ['1','2','3','4'], @smurftp.parse_range('1-4')
   end
   
-  def test_should_exclude_item_from_queue
-    @smurftp.add_list_to_queue('1-4,^3')
-    assert_match [0,1,3], @smurftp.upload_queue
-  end
   
-  def test_should_add_mixed_list_to_queue
-    @smurftp.add_list_to_queue('1,2,3-6,^4')
-    assert_match [0,1,2,4,5], @smurftp.upload_queue
+  def test_should_add_files_to_queue
+    @smurftp.add_files_to_queue(['1','2','3','4'])
+    assert_equal [0,1,2,3], @smurftp.upload_queue
   end
-  
-  def test_should_add_range_to_que
+
+
+  def test_should_parse_file_for_sub_dirs
+    file_paths = [
+      ['one/two/three/file.txt',['one','one/two','one/two/three']],
+      ['file.txt',[]]
+    ].each do |file,expanded|
+      assert_equal expanded, @smurftp.parse_file_for_sub_dirs(file)
+    end
   end
-  
+
 end

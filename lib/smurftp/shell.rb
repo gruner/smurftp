@@ -21,10 +21,10 @@ module Smurftp
         when /^(a|all)/
           upload_all
         when /^\d+(\.+|-)\d+/
-          add_range_to_queue(cmd)
+          add_files_to_queue(parse_range(cmd))
           upload
         when /^\d+,/
-          add_list_to_queue(cmd)
+          add_files_to_queue(parse_list(cmd))
           upload
         when /^\d+/
           add_file_to_queue(cmd)
@@ -58,29 +58,38 @@ module Smurftp
     end
     
     
-    def add_list_to_queue(str)
-      str.split(',').each do |s|
-        if s =~ /-/
-          parse_file_range(s)
-        elsif s =~ /(\^|!)\d/
-          s.gsub!(/[^\d]/, '') #strip non-digit characters
-          @upload_queue.delete(s.to_i-1)
-        else
-          add_file_to_queue(s)
-        end
-      end
+    def add_files_to_queue(files)
+      files.each {|f| add_file_to_queue(f)}
     end
     
     
-    def add_range_to_queue(str)
+    def parse_list(str)
+      file_list = []
+      exceptions = []
+      str.split(',').each do |s|
+        if s =~ /-/
+          file_list += parse_range(s)
+        elsif s =~ /(\^|!)\d/
+          s.gsub!(/[^\d]/, '') #strip non-digit characters
+          exceptions << s
+        else
+          file_list << s
+        end
+      end
+      return file_list - exceptions
+    end
+    
+    
+    def parse_range(str)
       delimiters = str.split(/\.+|-+/)
       r_start, r_end = delimiters[0], delimiters[1]
       # TODO assumes even number pairs for creating a range
       range = r_start.to_i..r_end.to_i
-      puts range
+      file_list = []
       range.each do |n|
-        @upload_queue << n-1
+        file_list << n.to_s
       end
+      return file_list
     end
     
     
