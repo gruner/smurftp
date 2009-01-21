@@ -6,8 +6,8 @@ class SmurftpShellTest < Test::Unit::TestCase
     @config = File.dirname(__FILE__) + '/../lib/smurftp/templates/smurftp_config.yaml'
     @smurftp = Smurftp::Shell.new(@config)
   end
-  
-  
+
+
   def test_should_parse_list
     lists = [
       ['1,2,3',['1','2','3']],
@@ -26,12 +26,6 @@ class SmurftpShellTest < Test::Unit::TestCase
   end
   
   
-  def test_should_add_files_to_queue
-    @smurftp.add_files_to_queue(['1','2','3','4'])
-    assert_equal [0,1,2,3], @smurftp.upload_queue
-  end
-
-
   def test_should_parse_file_for_sub_dirs
     file_paths = [
       ['one/two/three/file.txt',['one','one/two','one/two/three']],
@@ -39,6 +33,18 @@ class SmurftpShellTest < Test::Unit::TestCase
     ].each do |file,expanded|
       assert_equal expanded, @smurftp.parse_file_for_sub_dirs(file)
     end
+  end
+
+
+  def test_should_add_files_to_queue
+    @smurftp.add_files_to_queue(['1','2','3','4'])
+    assert_equal [0,1,2,3], @smurftp.upload_queue
+  end
+
+
+  def test_upload_queue_should_be_unique
+    @smurftp.add_files_to_queue(['1','2','3','4','2','3','1','1','1'])
+    assert_equal [0,1,2,3], @smurftp.upload_queue
   end
 
 end

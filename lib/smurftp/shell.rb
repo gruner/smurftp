@@ -54,7 +54,8 @@ module Smurftp
     
     def add_file_to_queue(str)
       str.gsub!(/[^\d]/, '') #strip non-digit characters
-      @upload_queue << str.to_i-1
+      file = str.to_i-1
+      @upload_queue << file unless @upload_queue.include?(file)
     end
     
     
@@ -169,7 +170,6 @@ module Smurftp
       created_dirs = []
       Net::FTP.open(@configuration[:server]) do |ftp|
         ftp.login(@configuration[:login], @configuration[:password])
-        @upload_queue.uniq!
         @upload_queue.each do |file_id|
           file = @file_list[file_id]
           
