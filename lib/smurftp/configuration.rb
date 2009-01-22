@@ -12,8 +12,9 @@ module Smurftp
     end
 
 
-    def initialize(file)
+    def initialize(file, site=nil)
       load_config_file(file)
+      self.merge! self[site] if site
       self.symbolize_keys!
       validate
       self[:exclusions] << file #exclude config file from upload if it's in the @base_dir

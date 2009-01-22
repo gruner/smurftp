@@ -4,10 +4,10 @@ module Smurftp
 
     attr_reader :upload_queue, :file_list
 
-    def initialize(config_file)
+    def initialize(config_file, site=nil)
       #Readline.basic_word_break_characters = ""
       #Readline.completion_append_character = nil
-      @configuration = Smurftp::Configuration.new(config_file)
+      @configuration = Smurftp::Configuration.new(config_file, site)
       @base_dir = @configuration[:document_root]
       @file_list = []
       @upload_queue = []
