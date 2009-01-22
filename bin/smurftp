@@ -3,6 +3,7 @@
 require File.dirname(__FILE__) + '/../lib/smurftp'
 
 input = ARGV[0]
+site = ARGV[1]
 
 if !input
   puts "Please specify a directory or configuration file to run smurftp from"
@@ -25,5 +26,5 @@ else
   exit
 end
 
-smurftp = Smurftp::Shell.new(config_file)
+smurftp = Smurftp::Shell.new(config_file, site)
 smurftp.run()

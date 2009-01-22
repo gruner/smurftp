@@ -13,27 +13,16 @@ module Smurftp
 
 
     def initialize(file)
-      self[:exclusions] = [file] #exclude config file from upload if it's in the @base_dir
-      self[:queue_limit] = 15
       load_config_file(file)
+      self.symbolize_keys!
       validate
+      self[:exclusions] << file #exclude config file from upload if it's in the @base_dir
+      self[:queue_limit] = 15
     end
 
 
     def load_config_file(file)
-      YAML::load_file(file).each do |name, value|
-        if name == 'exclusions'
-          value.each do |exclude|
-            # if exclude =~ /^\/.*\/$/
-            #   exclude.sub!(/^\/.*\/$/,$1)
-            #   exclude = exclude.to_regex
-            # end
-            self[:exclusions] << exclude
-          end
-        else
-          self[name.to_sym] = value
-        end
-      end
+      self.merge! YAML::load(File.open(file))
     end
 
 
@@ -47,6 +36,6 @@ module Smurftp
         raise StandardError, "Error: \"#{self[:document_root]}\" specified in configuration file is not a valid directory."
       end
     end
-
+    
   end
 end

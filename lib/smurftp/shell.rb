@@ -132,9 +132,9 @@ module Smurftp
       Find.find(@base_dir) do |f|
         
         @configuration[:exclusions].each do |e|
-          Find.prune if f =~ e.to_regex
+          Find.prune if f =~ e.to_regex!
           # if e.class == Regexp
-          #   Find.prune if f =~ e.to_regex
+          #   Find.prune if f =~ e.to_regex!
           # end
         end
 

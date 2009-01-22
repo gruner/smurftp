@@ -46,5 +46,12 @@ class SmurftpShellTest < Test::Unit::TestCase
     @smurftp.add_files_to_queue(['1','2','3','4','2','3','1','1','1'])
     assert_equal [0,1,2,3], @smurftp.upload_queue
   end
+  
+  def test_hash_symbolize_keys
+    assert_equal({:yada => 'yada'}, {'yada' => 'yada'}.symbolize_keys!)
+    expected = {:yada => {:yada => {:yada => 'yada'}}}
+    sample = {'yada' => {'yada' => {'yada' => 'yada'}}}
+    assert_equal expected, sample.symbolize_keys!
+  end
 
 end
