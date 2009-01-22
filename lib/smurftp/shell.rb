@@ -1,7 +1,7 @@
 # Smurftp::Shell is used to create an interactive shell. It is invoked by the smurftp binary.
 module Smurftp
   class Shell
-    
+
     attr_reader :upload_queue, :file_list
 
     def initialize(config_file)

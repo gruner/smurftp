@@ -38,3 +38,7 @@ At the `smurftp>` prompt enter the number identifier of the files you want uploa
     all uploads all listed files
 
 To quit type `quit` or `exit` at the prompt. `e` or `q` will also quit.
+
+## TODO
+
+* be able to run multiple sources from the same config file (i.e. smurftp config.yaml site)

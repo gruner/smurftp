@@ -1,0 +1,16 @@
+# smurftp multisite configuration
+named_server:
+  server: 'ftp.yourserver.com'
+  login: 'login'
+  password: ''
+
+exclusions:
+  - '_notes'
+  - 'resources'
+  - '/regex/'
+  
+site:
+  <<: *named_server
+  <<: *exclusions
+  server_root: 'web/'
+  document_root: '.'
