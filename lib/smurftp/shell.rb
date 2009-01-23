@@ -52,6 +52,10 @@ module Smurftp
     end
     
     
+    ##
+    # Adds single file to upload queue, ensuring
+    # no duplicate additions
+    
     def add_file_to_queue(str)
       str.gsub!(/[^\d]/, '') #strip non-digit characters
       file = str.to_i-1
@@ -63,6 +67,11 @@ module Smurftp
       files.each {|f| add_file_to_queue(f)}
     end
     
+    
+    ##
+    # Extract a list of comma separated values from a string.
+    # Look for ranges and expand them, look for exceptions
+    # and remove them from the returned list.
     
     def parse_list(str)
       file_list = []
@@ -80,6 +89,11 @@ module Smurftp
       return file_list - exceptions
     end
     
+    
+    ##
+    # Extract a range of numbers from a string.
+    # Expand the range into an array that represents files
+    # in the displayed list, and returns said array.
     
     def parse_range(str)
       delimiters = str.split(/\.+|-+/)
@@ -100,6 +114,10 @@ module Smurftp
     end
 
 
+    ##
+    # Format the output of the file list display by looping over
+    # @file_list and numbering each file up to the predefined queue limit.
+    
     def refresh_file_display
       if @last_upload
         puts 'Files changed since last upload:'
@@ -110,7 +128,8 @@ module Smurftp
       file_count = 1
       @file_list.each do |f|
         unless file_count > @configuration[:queue_limit]
-          puts "[#{file_count}] #{f[:base_name]}"
+          spacer = ' ' unless file_count > 9 #add space to even the file numbering column
+          puts "#{spacer}[#{file_count}] #{f[:base_name]}"
           file_count += 1
         else
           remaining_files = @file_list.length - file_count
@@ -124,7 +143,7 @@ module Smurftp
 
     ##
     # Find the files to process, ignoring temporary files, source
-    # configuration management files, etc., and return a Hash mapping
+    # configuration management files, etc., and add them to @file_list mapping
     # filename to modification time.
 
     def find_files
@@ -215,7 +234,9 @@ module Smurftp
     end
 
 
+    ##
     # Close the shell and exit the program with a cheesy message.
+    
     def finish
       messages = 
       [
