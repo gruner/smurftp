@@ -1,16 +1,41 @@
 # smurftp multisite configuration
-named_server: &named_server
-  server: 'ftp.yourserver.com'
-  login: 'login'
-  password: ''
 
-exclusions: &exclusions
-  - '_notes'
-  - 'resources'
-  - '/regex/'
+# multiple servers can be configured
+# and shared across site settings
 
-site:
+server1: &server1
+  server: ftp.yourserver.com
+  login: your_login
+  password: your_password
+
+global_exclusions: &exclusions 
+  exclusions:
+    - '_notes'
+    - 'resources'
+    - '/regex/'
+
+# define multiple sites which can
+# share server info and global_exclusions
+# in addition to defining their own
+
+site1:
+  <<: *server1
+  <<: *exclusions
   server_root: 'web/'
   document_root: '.'
-  <<: *named_server
+
+site2:
+  <<: *server1
+  exclusions:
+    - 'psd'
+    - 'src'
+  server_root: 'web/'
+  document_root: '.'
+
+site3:
+  server: ftp.anotherserver.com
+  login: site3_login
+  password: site3_password
+  server_root: 'web/'
+  document_root: '.'
   <<: *exclusions

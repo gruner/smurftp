@@ -1,7 +1,9 @@
 # Smurftp
  
-Smurftp creates a queue of recently modified files for quickly uploading to a remote server via FTP.
- 
+Smurftp is a command line utility that searches a specified directory and creates a queue of recently modified files for quickly uploading to a remote server via FTP.
+
+It was written for making web site edits where you might have a small group of files in multiple subdirectories that you want uploaded without having to manually go directory by directory.
+
 ## Usage
 
 Start Smurftp with this command:
@@ -18,7 +20,9 @@ Alternatively, if you specify an existing configuration file (it doesn't require
 
 ## File List
 
-Smurftp will search the defined 'document_root' directory and list all files in all sub directories, ordered by modification date, newest files first. It skips any files defined in the 'exclusions' list.
+Smurftp will search the defined 'document_root' directory and list all files in all sub directories, ordered by modification date, newest files first. It skips any files defined in the configurations 'exclusions' list.
+
+### Sample Output
 
     [1] foo.php
     [2] images/bar.jpg
@@ -30,15 +34,18 @@ Smurftp will search the defined 'document_root' directory and list all files in 
 
 At the `smurftp>` prompt enter the number identifier of the files you want uploaded. You can also enter a list or range of files.
 
-    1 uploads file [1]
-    1-5 uploads files [1-5]
-    1,2,4 uploads [1], [2], and [4]
-    1-5,^4 uploads files [1-3], and [5], skiping file [4]
-    1-5,!4 same as above
-    all uploads all listed files
+### Example Commands
+
+    '1' uploads file [1]
+    '1-5' uploads files [1-5]
+    '1,2,4' uploads [1], [2], and [4]
+    '1-5,^4' uploads files [1-3], and [5], skiping file [4]
+    '1-5,!4' same as above
+    'all' uploads all listed files
 
 To quit type `quit` or `exit` at the prompt. `e` or `q` will also quit.
 
 ## TODO
 
-* be able to run multiple sources from the same config file (i.e. smurftp config.yaml site)
+* support relative paths for :document_root
+* add optional sftp

@@ -14,11 +14,14 @@ module Smurftp
 
     def initialize(file, site=nil)
       load_config_file(file)
-      self.merge! self[site] if site
+      if site # merge config settings with current site
+        tmp = self[site]
+        self.clear.merge! tmp 
+      end
       self.symbolize_keys!
       validate
       self[:exclusions] << file #exclude config file from upload if it's in the @base_dir
-      self[:queue_limit] = 15
+      self[:queue_limit] ||= 15
     end
 
 
