@@ -16,24 +16,32 @@ module Smurftp
 
 
     # Run a single command.
-    def execute(cmd)
+    def parse_command(cmd)
       case cmd.downcase
-        when /^(a|all)/
-          upload_all
-        when /^\d+(\.+|-)\d+/
-          add_files_to_queue(parse_range(cmd))
-          upload
-        when /^\d+,/
-          add_files_to_queue(parse_list(cmd))
-          upload
+        when /^(a|all)$/
+          return lambda { upload_all }
+        when /\d+,/ # digit comma
+          files = parse_list(cmd)
+          command = lambda { upload }
+          return command, files
+        when /\d+(\.+|-)\d+/ 
+          files = parse_range(cmd)
+          command = lambda { upload }
+          return command, files
         when /^\d+/
-          add_file_to_queue(cmd)
-          upload
+          file = [cmd]
+          command = lambda { upload }
+          return command, file
         # when /^(m|more)/: list_more_queued_files
-        when /^(r|refresh|l|ls|list)/
-          find_files
-          refresh_file_display
+        when /^(r|refresh|l|ls|list)$/
+          command = lambda do
+            find_files
+            refresh_file_display
+          end
+          return command
         else
+          return 'error'
+        # TODO needs error message as fallback
       end
     end
     
@@ -44,10 +52,14 @@ module Smurftp
       refresh_file_display
       loop do
         cmd = Readline.readline('smurftp> ')
-        finish if cmd.nil? or cmd =~ /^(e|q)/
+        finish if cmd.nil? or cmd =~ /^(e|exit|q|quit)$/
         next if cmd == ""
         Readline::HISTORY.push(cmd)
-        execute(cmd)
+        command, files = parse_command(cmd)
+        if files
+          add_files_to_queue(files)
+        end
+        command.call
       end
     end
     
@@ -206,9 +218,10 @@ module Smurftp
           puts "uploading #{file[:base_name]}..."
           ftp.put("#{file[:name]}", "#{@configuration[:server_root]}/#{file[:base_name]}")
           # @file_list.delete_at file_id
-          @upload_queue.delete file_id
+          # @upload_queue.delete file_id
         end
       end
+      @upload_queue.clear
       puts "done"
       @last_upload = Time.now
     end

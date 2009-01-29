@@ -47,6 +47,40 @@ class SmurftpShellTest < Test::Unit::TestCase
     assert_equal [0,1,2,3], @smurftp.upload_queue
   end
   
+  
+  def test_parse_command_should_parse_input
+    input = @smurftp.parse_command('all')
+    assert_equal Proc, input.class
+
+    input = @smurftp.parse_command('a')
+    assert_equal Proc, input.class
+    
+    input = @smurftp.parse_command('ardvark')
+    assert_equal 'error', input
+
+    input = @smurftp.parse_command('allin')
+    assert_equal 'error', input
+
+    cmd, files = @smurftp.parse_command('1')
+    assert_equal ['1'], files
+
+    cmd = @smurftp.parse_command(' 1 ')
+    assert_equal 'error', cmd
+    
+    cmd, files = @smurftp.parse_command('1,2,3,4')
+    assert_equal ['1','2','3','4'], files
+    
+    cmd, files = @smurftp.parse_command('1-4')
+    assert_equal ['1','2','3','4'], files
+    
+    cmd, files = @smurftp.parse_command('1-4,^3')
+    assert_equal ['1','2','4'], files
+    
+    cmd, files = @smurftp.parse_command('^3,1-4')
+    assert_equal ['1','2','4'], files
+  end
+
+
   def test_hash_symbolize_keys
     assert_equal({:yada => 'yada'}, {'yada' => 'yada'}.symbolize_keys!)
     expected = {:yada => {:yada => {:yada => 'yada'}}}

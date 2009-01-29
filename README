@@ -49,3 +49,4 @@ To quit type `quit` or `exit` at the prompt. `e` or `q` will also quit.
 
 * support relative paths for :document_root
 * add optional sftp
+* automatically refresh file list
