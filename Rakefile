@@ -12,15 +12,13 @@ spec = Gem::Specification.new do |s|
   s.version = Smurftp::VERSION::STRING
   s.author = "Andrew Gruner"
   s.email = "andrew@divineflame.com"
-  s.homepage = "http//github.com/divineflame/smurftp"
-  s.summary = "Creates a queue of recently modified files for quickly uploading to a server"
+  s.homepage = "http://github.com/divineflame/smurftp"
+  s.summary = "A command line utility for quickly uploading recently modified files to a remote server via FTP."
   files = FileList["**/**/**"]
   files.exclude 'pkg'
   files.exclude 'contrib'
   s.files = files.to_a
   s.test_files =  Dir.glob("test/*_test.rb")
-  s.add_dependency("haml", ">=2.0.0")
-  s.add_dependency("mongrel")
   s.executables=['smurftp']
 end
 
