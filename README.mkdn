@@ -1,14 +1,19 @@
 # Smurftp
  
-Smurftp is a command line utility that searches a specified directory and creates a queue of recently modified files for quickly uploading to a remote server via FTP.
+Smurftp is a command-line utility written in Ruby that searches a specified directory and creates a queue of recently modified files for quickly uploading to a remote server over FTP.
 
 It was written for making web site edits where you might have a small group of files in multiple subdirectories that you want uploaded without having to manually go directory by directory.
+
+## Install
+
+    $ gem sources -a http://gems.github.com
+    $ sudo gem install divineflame-smurftp
 
 ## Usage
 
 Start Smurftp with this command:
 
-    smurftp <directory or configuration file>
+    $ smurftp <directory or configuration file>
 
 ## Configuration
 
@@ -16,11 +21,13 @@ Smurftp requires a configuration file in YAML format that defines your FTP serve
 
 When starting Smurftp, if you specify a directory, it looks for a 'smurftp_config.yaml' file in that directory. If the file is not found you'll be given the option for this file to be generated for you.
 
-Alternatively, if you specify an existing configuration file (it doesn't require the 'smurftp_config.yaml' name) Smurftp will start by loading this file. Because the local 'document_root' is defined in the configuration file, you can store the configuration file separately from your project files if you choose.
+Alternatively, if you specify an existing configuration file (it doesn't require the 'smurftp_config.yaml' name) Smurftp will start by loading this file. Because the 'document_root' setting is defined in the configuration file, you can store the configuration file separately from your project files if you choose.
+
+It's also possible to define multiple servers, sites, and login credentials in the same configuration file.
 
 ## File List
 
-Smurftp will search the defined 'document_root' directory and list all files in all sub directories, ordered by modification date, newest files first. It skips any files defined in the configurations 'exclusions' list.
+Smurftp will search the defined 'document_root' directory and list all files in all sub directories, ordered by modification date with newest files first. It skips any files defined in the configuration's 'exclusions' list.
 
 ### Sample Output
 
@@ -39,7 +46,7 @@ At the `smurftp>` prompt enter the number identifier of the files you want uploa
     '1' uploads file [1]
     '1-5' uploads files [1-5]
     '1,2,4' uploads [1], [2], and [4]
-    '1-5,^4' uploads files [1-3], and [5], skiping file [4]
+    '1-5,^4' uploads files [1-3], and [5], skipping file [4]
     '1-5,!4' same as above
     'all' uploads all listed files
 
